@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*-coding:utf-8-*-
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional
@@ -12,13 +14,15 @@ import torchvision.transforms as transforms
 
 from common.datas import get_mnist_loader
 
-import os
+# from torch.utils.tensorboard import SummaryWriter  
+# writer = SummaryWriter('./path/to/log')
+
 import time
 import matplotlib.pyplot as plt
 from PIL import Image
 
 batch_size = 100
-num_epochs = 50
+num_epochs = 10
 in_dim = 784
 hidden_size = 30
 expect_tho = 0.05
@@ -74,9 +78,10 @@ _beta = 3
 #     p = torch.nn.functional.softmax(p, dim=-1)
 #     _kl = torch.sum(p*(torch.log_softmax(p,dim=-1)) - torch.nn.functional.log_softmax(q, dim=-1),1)
 #     return torch.mean(_kl)
-
+loss_list = []
 for epoch in range(num_epochs):
     time_epoch_start = time.time()
+    loss_epoch = [] #存储每个epoch里面的loss
     for batch_index, (train_data, train_label) in enumerate(train_loader):
         if torch.cuda.is_available():
             train_data = train_data.cuda()
@@ -93,4 +98,13 @@ for epoch in range(num_epochs):
         loss.backward()
         Optimizer.step()
 
+        #存储epoch的每个loss值
+        loss_epoch.append(loss.item())
         print('Epoch: {}, Loss: {:.4f}, Time: {:.2f}'.format(epoch + 1, loss, time.time() - time_epoch_start))
+    #每个epoch的平均loss值
+    average_loss = np.mean(loss_epoch)
+    loss_list.append(average_loss)
+    # writer.add_scalar('loss',average_loss,epoch)
+
+plt.plot([i for i in range(1,num_epochs+1)],loss_list)
+plt.show()

@@ -1,0 +1,7 @@
+*.pyc
+*.jpg
+data/*
+src/path/*
+*.pt
+*.png
+settings.json
